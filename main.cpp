@@ -4,7 +4,7 @@
 #include <assert.h>
 
 
-char** input(FILE* fp, size_t* arr_len);
+char** inputText(FILE* fp, size_t* arr_len);
 inline void printText(char** text, FILE* stream);
 inline void freeText(char** text, size_t text_len);
 int fputs_(const char* str, FILE* stream);
@@ -13,7 +13,7 @@ int main() {
     FILE* fp = fopen("onegin.txt", "r");
     
     size_t text_len = 0;
-    char** text = input(fp, &text_len);
+    char** text = inputText(fp, &text_len);
 
     printText(text, stdout);
     
@@ -22,7 +22,7 @@ int main() {
     return 0;
 }
 
-char** input(FILE* fp, size_t* arr_len) {
+char** inputText(FILE* fp, size_t* arr_len) {
     assert( fp!= NULL );
     assert( arr_len!= NULL );
 
