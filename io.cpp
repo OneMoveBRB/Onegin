@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <assert.h>
 
 #include "dynamicSettings.h"
@@ -23,7 +22,7 @@ char** inputText(FILE* fp, size_t* text_size) {
     dynamic_set lineSet = {0, 0};
     char* line = NULL;
 
-    while( getline(&line, &lineSet.size, fp) != EOF ) {
+    while( getline_(&line, &lineSet.size, fp) != EOF ) {
         if (textSet.size + 1 == textSet.capacity) {
             textSet.capacity *= exp_multiplier;
             text = (char**)realloc(text, sizeof(char*)*textSet.capacity);
