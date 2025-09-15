@@ -5,69 +5,123 @@
 
 
 char** inputText(FILE* fp, size_t* arr_len);
-inline void printText(char** text, FILE* stream);
-inline void freeText(char** text, size_t text_len);
+void merge_sort(char** text, size_t l, size_t r);
+void printText(char** text, FILE* stream);
+void freeText(char** text, size_t text_len);
 int fputs_(const char* str, FILE* stream);
 
+const char* file_name = "onegin.txt";
+
+struct dynamic_set {
+    size_t size;
+    size_t capacity;
+};
+
 int main() {
-    FILE* fp = fopen("onegin.txt", "r");
+    FILE* fp = fopen(file_name, "r");
+    if (fp == NULL) {
+        fprintf(stderr, "NULL file_ptr\n");
+        return EXIT_FAILURE;
+    }
     
-    size_t text_len = 0;
-    char** text = inputText(fp, &text_len);
+    size_t text_size = 0;
+    char** text = inputText(fp, &text_size);
+
+    merge_sort(text, 0, text_size-1);
 
     printText(text, stdout);
     
-    if (text != NULL) freeText(text, text_len);    
+    if (text != NULL) freeText(text, text_size);    
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
-char** inputText(FILE* fp, size_t* arr_len) {
-    assert( fp!= NULL );
-    assert( arr_len!= NULL );
+char** inputText(FILE* fp, size_t* text_size) {
+    assert( fp != NULL );
+    assert( text_size != NULL );
 
 
     const size_t first_size = 10;
+    const int exp_multiplier = 2;
 
-    size_t strings_cur_len = 0;
-    size_t strings_len = first_size;
-    char** strings = (char**)calloc(sizeof(NULL), first_size);
+    dynamic_set textSet = {0, first_size};
+    char** text = (char**)calloc(sizeof(char*), textSet.capacity);
 
-    size_t line_len = 0;
+    dynamic_set lineSet = {0, 0};
     char* line = NULL;
 
-    while( getline(&line, &line_len, fp) != EOF ) {
-        if (strings_cur_len + 1 == strings_len) {
-            strings_len *= 2;
-            strings = (char**)realloc(strings, sizeof(NULL)*strings_len);
+    while( getline(&line, &lineSet.size, fp) != EOF ) {
+        if (textSet.size + 1 == textSet.capacity) {
+            textSet.capacity *= exp_multiplier;
+            text = (char**)realloc(text, sizeof(char*)*textSet.capacity);
         }
 
-        strings[strings_cur_len] = (char*)calloc(sizeof(char), line_len);
-        strcpy(strings[strings_cur_len], line);
-        ++strings_cur_len;
-
-        free(line);
-        line = NULL;
+        text[textSet.size++] = line;
+        lineSet.size = 0;
     }
-    if (line != NULL) free(line);
+    free(line);
     
-    *arr_len = strings_cur_len;
+    *text_size = textSet.size;
     
-    if (strings_cur_len == 0) {
-        free(strings);
+    if (textSet.size == 0) {
+        free(text);
         return NULL;
     }
     
-    return strings;
+    return text;
 }
 
-inline void printText(char** text, FILE* stream) {
+void merge_sort(char** text, size_t l, size_t r) {
+    assert( text != NULL );
+    
+    
+    if (l == r) return;
+
+    size_t k = (l+r)/2;
+
+    merge_sort(text, l, k);
+    merge_sort(text, k+1, r);
+
+    char** temp = (char**)calloc(r-l+1, sizeof(char*));
+    size_t temp_size = 0;
+
+    size_t i = l, j = k+1;
+
+    for (; (i <= k) && (j <= r); ) {
+        if ( strcmp(text[i], text[j]) < 0 ) {
+            temp[temp_size++] = text[i++];
+
+        } else if ( strcmp(text[i], text[j]) == 0 ) {
+            temp[temp_size++] = text[i++];
+            temp[temp_size++] = text[j++];
+            
+        } else {
+            temp[temp_size++] = text[j++];
+        }
+    }
+
+    while ( i <= k ) {
+        temp[temp_size++] = text[i++];
+    }
+    while ( j <= r ) {
+        temp[temp_size++] = text[j++];
+    }
+
+    for (size_t x = l; x <= r; x++) {
+        text[x] = temp[x-l];
+    }
+    
+    free(temp);
+    temp = NULL;
+}
+
+void printText(char** text, FILE* stream) {
     while ( fputs_(*text, stream) != EOF ) {
         ++text;
     }
 }
 
-inline void freeText(char** text, size_t text_len) {    
+void freeText(char** text, size_t text_len) {    
     for (size_t i = 0; i < text_len; ++i) {
         free(text[i]);
     }
